@@ -10,7 +10,7 @@ dotenv.config();
 const app = express();
 
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: "https://realestate-delta-ecru.vercel.app",
   credentials: true
 }));
 app.get("/",(req,res)=>{
