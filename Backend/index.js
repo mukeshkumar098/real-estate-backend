@@ -12,7 +12,7 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 app.use(cors({
   origin: "https://realestate-delta-ecru.vercel.app"
-  // credentials: true
+  credentials: true
 }));
 app.get("/",(req,res)=>{
   res.send("this is home page")
