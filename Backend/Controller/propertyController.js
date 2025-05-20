@@ -1,8 +1,6 @@
 
 import { userModel } from "../Models/userModel.js";
 import { propertyModel } from "../Schemas/propertiesSchema.js";
-// import { propertyModel } from "../Schemas/propertiesSchema.js";
-import twilio from 'twilio';
 import dotenv from 'dotenv';
 import axios from "axios";
 import transporter from "../Utils/sendMail.js";
