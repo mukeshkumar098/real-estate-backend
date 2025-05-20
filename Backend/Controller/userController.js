@@ -210,31 +210,37 @@ export const getUserProfile = async (req, res) => {
 export const updateUserProfile = async (req, res) => {
     try {
         await ensureUploadDir();
-        const { name, email } = req.body;
-        const userId = req.user?.id
+
+        const {
+            name,
+            email,
+            phoneNumber,
+            bio
+        } = req.body;
+
+        const userId = req.user?.id;
         const file = req.file;
 
-        console.log(userId);
-        
-
-        // Verify the file exists before processing
         if (file && !fs.existsSync(file.path)) {
             throw new Error('Uploaded file not found');
         }
 
         const user = await userModel.findById(userId);
         if (!user) {
-            return res.status(404).json({ 
+            return res.status(404).json({
                 success: false,
-                message: 'User not found' 
+                message: 'User not found'
             });
         }
 
-        const updateData = { name, email };
+        const updateData = {};
+        if (name) updateData.name = name;
+        if (email) updateData.email = email;
+        if (phoneNumber) updateData.phoneNumber = phoneNumber;
+        if (bio) updateData.bio = bio;
 
         // Handle profile picture upload
         if (file) {
-            // Delete old picture if exists
             if (user.profilePicture) {
                 const oldPath = path.join(process.cwd(), user.profilePicture);
                 if (fs.existsSync(oldPath)) {
@@ -242,18 +248,15 @@ export const updateUserProfile = async (req, res) => {
                 }
             }
 
-            // Generate unique filename
             const filename = `${Date.now()}-${file.originalname}`;
             const filePath = path.join(UPLOAD_DIR, filename);
-            
-            // Ensure the file exists before moving it
+
             if (!fs.existsSync(file.path)) {
                 throw new Error('Temporary file not found');
             }
-            
-            // Move the file
+
             await fs.promises.rename(file.path, filePath);
-            
+
             updateData.profilePicture = `${PUBLIC_URL}/${filename}`;
         }
 
@@ -270,15 +273,14 @@ export const updateUserProfile = async (req, res) => {
         });
 
     } catch (error) {
-        // Clean up files if error occurs
         if (req.file && req.file.path && fs.existsSync(req.file.path)) {
             await unlinkAsync(req.file.path).catch(console.error);
         }
-        
-        res.status(500).json({ 
+
+        res.status(500).json({
             success: false,
             message: 'Error updating profile',
-            error: error.message 
+            error: error.message
         });
     }
 };
