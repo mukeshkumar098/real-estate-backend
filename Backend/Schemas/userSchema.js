@@ -11,6 +11,7 @@ const UserSchema = new mongoose.Schema({
   isVerified: { type: Boolean, default: false },
   bio: { type: String },
   phoneNumber: { type: String },
+  address: { type: String },
   specialization: { type: String },
   otp: { type: String },                // ✅ Store OTP
   otpExpiresAt: { type: Date }

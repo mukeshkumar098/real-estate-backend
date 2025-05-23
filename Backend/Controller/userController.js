@@ -215,7 +215,8 @@ export const updateUserProfile = async (req, res) => {
             name,
             email,
             phoneNumber,
-            bio
+            bio,
+            address // ✅ Include address
         } = req.body;
 
         const userId = req.user?.id;
@@ -238,8 +239,9 @@ export const updateUserProfile = async (req, res) => {
         if (email) updateData.email = email;
         if (phoneNumber) updateData.phoneNumber = phoneNumber;
         if (bio) updateData.bio = bio;
+        if (address) updateData.address = address; // ✅ Add this
 
-        // Handle profile picture upload
+        // ✅ Handle profile picture upload
         if (file) {
             if (user.profilePicture) {
                 const oldPath = path.join(process.cwd(), user.profilePicture);
@@ -284,6 +286,7 @@ export const updateUserProfile = async (req, res) => {
         });
     }
 };
+
 
 export const updatePassword = async (req, res) => {
     try {

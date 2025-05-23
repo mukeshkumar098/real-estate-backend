@@ -1,6 +1,6 @@
 import express from 'express'
 import { verifyRole } from '../Middelware/isAuthendicate.js';
-import {addProperties, deleteProperty, getAllProperties, getPropertyById,verifyEmailOtp, sendEmailOtp,incrementViewCount, likeProperty, verifyNumberOtpSMS,searchProperties, sendNumberOtpSMS, updateBioAndSpecialization, updateProperty, } from '../Controller/propertyController.js'
+import {addProperties, deleteProperty, getAllProperties, getPropertyById,verifyEmailOtp,updateUserToSeller, checkVerifiedSeller,sendEmailOtp,incrementViewCount, likeProperty, verifyNumberOtpSMS,searchProperties, sendNumberOtpSMS, updateBioAndSpecialization, updateProperty, } from '../Controller/propertyController.js'
 import { upload } from '../Utils/S3.service.js';
 
 const propertiesRoute=express.Router();
@@ -20,6 +20,29 @@ propertiesRoute.post('/verify-otp', verifyRole(["seller", "admin","buyer"]), ver
 propertiesRoute.post('/emailOTP', verifyRole(["seller", "admin","buyer"]), sendEmailOtp);
 propertiesRoute.post('/verify-email', verifyRole(["seller", "admin","buyer"]), verifyEmailOtp);
 propertiesRoute.put('/update-profile', verifyRole(["seller", "admin","buyer"]), updateBioAndSpecialization);
+propertiesRoute.put('/update-Seller', verifyRole(["admin","buyer","seller"]), updateUserToSeller);
+propertiesRoute.get(
+  '/check_Verified_Seller',
+  verifyRole(["admin", "buyer", "seller"]),
+  checkVerifiedSeller,
+  (req, res) => {
+    const user = req.verifiedSeller;
+    res.json({
+      message: "User is a verified seller",
+      isVerified: true,
+      verificationStatus: "approved",
+      phoneVerified: true,       // Replace with real values if available
+      emailVerified: true,       // Replace with real values if available
+      seller: {
+        name: user.name,
+        email: user.email,
+        specialization: user.specialization,
+        profilePicture: user.profilePicture,
+      },
+    });
+  }
+);
+
 
 
   export {propertiesRoute}

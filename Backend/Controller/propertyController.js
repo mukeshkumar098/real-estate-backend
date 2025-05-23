@@ -1,6 +1,8 @@
 
 import { userModel } from "../Models/userModel.js";
 import { propertyModel } from "../Schemas/propertiesSchema.js";
+// import { propertyModel } from "../Schemas/propertiesSchema.js";
+
 import dotenv from 'dotenv';
 import axios from "axios";
 import transporter from "../Utils/sendMail.js";
@@ -346,7 +348,7 @@ export const likeProperty = async (req, res) => {
 
 
 
-// Twilio setup
+
 function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
@@ -355,7 +357,7 @@ function generateOTP() {
 export const sendNumberOtpSMS = async (req, res) => {
   try {
     const { phoneNumber } = req.body;
-
+   console.log(phoneNumber,"kjsdhfusifb")
     if (!phoneNumber) {
       return res.status(400).json({
         success: false,
@@ -380,16 +382,18 @@ export const sendNumberOtpSMS = async (req, res) => {
     user.otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 mins
     await user.save();
 
+    console.log(formattedPhoneNumber,"bhfb")
+
     // Send OTP via MSG91
-    const msg91Response = await axios.get('https://api.msg91.com/api/v5/otp', {
-      params: {
-        authkey: process.env.MSG91_AUTH_KEY,
-        mobile: formattedPhoneNumber,
-        sender: process.env.MSG91_SENDER_ID,
-        otp: otp,
-        template_id: process.env.MSG91_TEMPLATE_ID
-      }
-    });
+ const msg91Response = await axios.get('https://control.msg91.com/api/v5/otp', {
+  params: {
+    authkey: process.env.MSG91_AUTH_KEY,
+    mobile: formattedPhoneNumber,           // Example: 919876543210
+    sender: process.env.MSG91_SENDER_ID,    // Example: 'ABCDEF'
+    otp: otp,                                // Your generated OTP
+    template_id: process.env.MSG91_TEMPLATE_ID
+  }
+});
 
     return res.status(200).json({
       success: true,
@@ -530,6 +534,81 @@ export const verifyEmailOtp = (req, res) => {
     res.status(200).json({ message: 'OTP verified successfully' });
   } else {
     res.status(400).json({ message: 'Invalid OTP' });
+  }
+};
+
+
+
+export const updateUserToSeller = async (req, res) => {
+  try {
+    const { role, purpose } = req.body;
+    const userId = req.user.id;
+
+    console.log(userId)
+
+    // Validate input role and purpose
+    if (!['admin', 'seller', 'buyer'].includes(role)) {
+      return res.status(400).json({ error: 'Invalid role' });
+    }
+
+    if (!['Sell', 'Rent/lease', 'List as PG'].includes(purpose)) {
+      return res.status(400).json({ error: 'Invalid purpose' });
+    }
+
+    // Fetch user
+    const user = await userModel.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Only allow conversion if user is currently a buyer
+    if (user.role !== 'buyer') {
+      return res.status(403).json({ error: 'Only users with role "buyer" can become a seller' });
+    }
+
+    // Update role and specialization
+    user.role = 'seller';
+    user.specialization = `${role} - ${purpose}`;
+    user.isVerified = false; // Reset verification
+
+    await user.save();
+
+    res.json({ message: 'User role updated to seller successfully', user });
+  } catch (error) {
+    console.error('Error updating user to seller:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+
+export const checkVerifiedSeller = async (req, res, next) => {
+  try {
+    const userId =  req.user.id; // support both _id and id
+
+    const user = await userModel.findById(userId);
+
+    console.log(userId);
+    
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (user.role !== 'seller') {
+      return res.status(403).json({ error: 'Access denied. User is not a seller.' });
+    }
+
+    if (!user.isVerified) {
+      return res.status(403).json({ error: 'Seller account is not verified.' });
+    }
+
+    // All checks passed
+    req.verifiedSeller = user;
+    next(); // ✅ continue to the next middleware or controller
+  } catch (error) {
+    console.error('Error checking verified seller:', error);
+    res.status(500).json({ error: 'Server error' });
   }
 };
 

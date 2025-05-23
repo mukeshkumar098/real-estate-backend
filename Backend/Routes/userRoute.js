@@ -5,7 +5,7 @@ import { verifyRole } from '../Middelware/isAuthendicate.js';
 import upload from '../Middelware/uploadMiddleware.js';
 const router = express.Router();
 
-router.put("/admin-verify-seller/:id",verifyRole(["admin"]),adminVerifySeller)
+router.put("/admin-verify-seller/:id",verifyRole(["admin","seller"]),adminVerifySeller)
 router.post("/register",userRegister)
 // router.put("/update", verifyRole(["admin", "buyer"]), updateUserProfile);
 router.get("/getUserDetail", verifyRole(["admin","buyer"]), getUserById);
