@@ -11,7 +11,7 @@ const app = express();
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 app.use(cors({
- origin: ("http://localhost:5173/","https://realestate-delta-ecru.vercel.app"),
+ origin: "https://realestate-delta-ecru.vercel.app",
   credentials: true
 }));
 app.get("/",(req,res)=>{
